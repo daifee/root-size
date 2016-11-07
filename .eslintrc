@@ -1,0 +1,31 @@
+{
+  "parser": "babel-eslint",
+  "extends": "standard",
+  "globals": {
+    "alert": false,
+    "console": false,
+    "window": false,
+
+    // mocha
+    "describe": false,
+    "it": false
+  },
+
+  "rules": {
+    // 必须使用分号，且正确使用
+    "semi": [2, "always"],
+    // 不限制连续的空行数量
+    "no-multiple-empty-lines": 0,
+    // 末尾空白行
+    "eol-last": 0,
+    // 匿名函数需要空格，命名的不需要
+    "space-before-function-paren": [2, {
+      "anonymous": "always",
+      "named": "never"
+    }],
+    // 三目运算
+    "no-unneeded-ternary": 0,
+    // 还是要报告声明但未使用的变量的
+    "no-unused-vars": 1
+  }
+}

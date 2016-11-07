@@ -1,0 +1,9 @@
+src
+docs
+git-hooks
+test
+.babelrc
+.eslintrc
+.travis.yml
+esdoc.json
+webpack.config.js
