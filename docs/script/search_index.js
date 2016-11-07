@@ -1,5 +1,11 @@
 window.esdocSearchIndex = [
   [
+    "root-size/src/index.js~rootsize",
+    "function/index.html#static-function-rootSize",
+    "<span>rootSize</span> <span class=\"search-result-import-path\">root-size/src/index.js</span>",
+    "function"
+  ],
+  [
     "builtinexternal/ecmascriptexternal.js~array",
     "external/index.html",
     "BuiltinExternal/ECMAScriptExternal.js~Array",

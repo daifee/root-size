@@ -32,7 +32,8 @@
 <nav class="navigation" data-ice="nav"><div>
   <ul>
     
-  </ul>
+  <li data-ice="doc"><span data-ice="kind" class="kind-function">F</span><span data-ice="name"><span><a href="function/index.html#static-function-rootSize">rootSize</a></span></span></li>
+</ul>
 </div>
 </nav>
 
@@ -63,22 +64,31 @@
 
 const win = window;
 const docEl = document.documentElement;
-const designWidth = parseInt(docEl.getAttribute(&apos;data-design-width&apos;)) || 750;
-const maxLayoutWidth = parseInt(docEl.getAttribute(&apos;data-max-layout-width&apos;)) || 750;
+const DESIGN_WIDTH = parseInt(docEl.getAttribute(&apos;data-design-width&apos;)) || 750;
+const MAX_LAYOUT_WIDTH = parseInt(docEl.getAttribute(&apos;data-max-layout-width&apos;)) || 750;
 
-let rootSize, layoutWidth, preLayoutWidth, timer;
+let layoutWidth = docEl.getBoundingClientRect().width;
+// &#x6B63;&#x5E38;&#x60C5;&#x51B5;ratio=1&#xFF0C;&#x5B58;&#x5728;bug&#x7684;&#x8BBE;&#x5907;ratio!=1
+// ratio = rootSize / (layoutWidth / DESIGN_WIDTH * 100)
+let ratio = 1;
+let preLayoutWidth;
+let timer;
 
 
-// &#x67D0;&#x4E9B;&#x8BBE;&#x5907;rem&#x8F6C;px&#x6BD4;&#x4F8B;&#x4E0D;&#x6B63;&#x786E;
-function ratioHack() {
-  docEl.style.fontSize = &apos;20px&apos;;
 
+function setRootSize() {
+  let rootSize = layoutWidth / DESIGN_WIDTH * 100 * ratio;
+
+  docEl.style.fontSize = rootSize + &apos;px&apos;;
+}
+
+
+// &#x521B;&#x5EFA;&#x4E00;&#x4E2A;&#x4E34;&#x65F6;&#x7684;`&lt;div/&gt;`&#x68C0;&#x6D4B;ratio&#x662F;&#x5426;&#x201C;&#x51C6;&#x786E;&#x201D;
+function checkRatio() {
   let body, loadedBody;
   let div = document.createElement(&apos;div&apos;);
-  div.style.border = &apos;1rem solid transparent&apos;;
-  div.style.width = &apos;0&apos;;
-  div.style.borderLeft = &apos;.5px solid transparent&apos;;
-  div.style.borderRight = &apos;.5px solid transparent&apos;;
+  // `DESIGN_WIDTH / 100 + &apos;rem&apos;`&#xFF08;&#x4F8B;&#x5982;&#xFF1A;7.5rem&#xFF09;&#x5E94;&#x8BE5;&#x6EE1;&#x5C4F;&#xFF0C;&#x5373;&#x7B49;&#x4E8E;layoutWidth
+  div.style.width = DESIGN_WIDTH / 100 + &apos;rem&apos;;
 
   if (document.body) {
     loadedBody = true;
@@ -90,7 +100,7 @@ function ratioHack() {
   }
 
   body.appendChild(div);
-  win.RATIO_HACK = 40 / div.offsetHeight;
+  ratio = layoutWidth / div.offsetWidth;
 
   // remove body
   if (loadedBody) {
@@ -98,46 +108,46 @@ function ratioHack() {
   } else {
     docEl.removeChild(body);
   }
+
+  return ratio;
 }
 
+
 // &#x8BBE;&#x7F6E;&#x6839;&#x5143;&#x7D20;&#x5B57;&#x4F53;&#x5927;&#x5C0F;
-function setRootSize(designWidth, maxLayoutWidth) {
+export default function rootSize() {
   layoutWidth = docEl.getBoundingClientRect().width;
 
-  // &#x9650;&#x5236;&#x6700;&#x5927;
-  if (maxLayoutWidth &amp;&amp; layoutWidth &gt; maxLayoutWidth) {
-    layoutWidth = maxLayoutWidth;
+  // &#x9650;&#x5236;&#x5E03;&#x5C40;&#x5BBD;&#x5EA6;
+  if (layoutWidth &gt; MAX_LAYOUT_WIDTH) {
+    layoutWidth = MAX_LAYOUT_WIDTH;
   }
 
-  // &#x907F;&#x514D;&#x4E0D;&#x5FC5;&#x8981;&#x7684;&#x8BA1;&#x7B97;
+  // layoutWidth&#x4E0D;&#x53D8;&#xFF0C;&#x907F;&#x514D;&#x4E0D;&#x5FC5;&#x8981;&#x7684;&#x8BA1;&#x7B97;
   if (layoutWidth === preLayoutWidth) {
     return;
   }
   preLayoutWidth = layoutWidth;
 
-  // &#x903B;&#x8F91;
-  rootSize = layoutWidth / designWidth * 100 * win.RATIO_HACK;
+  // &#x8BBE;&#x7F6E;
+  setRootSize();
 
-  docEl.style.fontSize = rootSize + &apos;px&apos;;
-
-  win.rootSize = rootSize;
+  // &#x5982;&#x679C;ratio!==1&#xFF0C;&#x91CD;&#x65B0;&#x8BBE;&#x7F6E;rootSize
+  if (checkRatio() !== 1) {
+    setRootSize();
+  }
 }
 
 
-// &#x6267;&#x884C;
-ratioHack();
-setRootSize(designWidth, maxLayoutWidth);
-
-
+rootSize();
 // &#x81EA;&#x52A8;&#x8C03;&#x6574;
 win.addEventListener(&apos;resize&apos;, () =&gt; {
   clearTimeout(timer);
-  timer = setTimeout(setRootSize, 300);
+  timer = setTimeout(rootSize, 300);
 });
 
 win.addEventListener(&apos;orientationchange&apos;, () =&gt; {
   clearTimeout(timer);
-  timer = setTimeout(setRootSize, 300);
+  timer = setTimeout(rootSize, 300);
 });
 
 </code></pre>

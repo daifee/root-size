@@ -56,6 +56,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	'use strict';
 	
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.default = rootSize;
 	/**
 	 * 使用rem作为布局单位，动态设置根元素字体大小单位，实现弹性布局。
 	 */
@@ -80,25 +84,29 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var win = window;
 	var docEl = document.documentElement;
-	var designWidth = parseInt(docEl.getAttribute('data-design-width')) || 750;
-	var maxLayoutWidth = parseInt(docEl.getAttribute('data-max-layout-width')) || 750;
+	var DESIGN_WIDTH = parseInt(docEl.getAttribute('data-design-width')) || 750;
+	var MAX_LAYOUT_WIDTH = parseInt(docEl.getAttribute('data-max-layout-width')) || 750;
 	
-	var rootSize = void 0,
-	    layoutWidth = void 0,
-	    preLayoutWidth = void 0,
-	    timer = void 0;
+	var layoutWidth = docEl.getBoundingClientRect().width;
+	// 正常情况ratio=1，存在bug的设备ratio!=1
+	// ratio = rootSize / (layoutWidth / DESIGN_WIDTH * 100)
+	var ratio = 1;
+	var preLayoutWidth = void 0;
+	var timer = void 0;
 	
-	// 某些设备rem转px比例不正确
-	function ratioHack() {
-	  docEl.style.fontSize = '20px';
+	function setRootSize() {
+	  var rootSize = layoutWidth / DESIGN_WIDTH * 100 * ratio;
 	
+	  docEl.style.fontSize = rootSize + 'px';
+	}
+	
+	// 创建一个临时的`<div/>`检测ratio是否“准确”
+	function checkRatio() {
 	  var body = void 0,
 	      loadedBody = void 0;
 	  var div = document.createElement('div');
-	  div.style.border = '1rem solid transparent';
-	  div.style.width = '0';
-	  div.style.borderLeft = '.5px solid transparent';
-	  div.style.borderRight = '.5px solid transparent';
+	  // `DESIGN_WIDTH / 100 + 'rem'`（例如：7.5rem）应该满屏，即等于layoutWidth
+	  div.style.width = DESIGN_WIDTH / 100 + 'rem';
 	
 	  if (document.body) {
 	    loadedBody = true;
@@ -110,7 +118,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  body.appendChild(div);
-	  win.RATIO_HACK = 40 / div.offsetHeight;
+	  ratio = layoutWidth / div.offsetWidth;
 	
 	  // remove body
 	  if (loadedBody) {
@@ -118,44 +126,44 @@ return /******/ (function(modules) { // webpackBootstrap
 	  } else {
 	    docEl.removeChild(body);
 	  }
+	
+	  return ratio;
 	}
 	
 	// 设置根元素字体大小
-	function setRootSize(designWidth, maxLayoutWidth) {
+	function rootSize() {
 	  layoutWidth = docEl.getBoundingClientRect().width;
 	
-	  // 限制最大
-	  if (maxLayoutWidth && layoutWidth > maxLayoutWidth) {
-	    layoutWidth = maxLayoutWidth;
+	  // 限制布局宽度
+	  if (layoutWidth > MAX_LAYOUT_WIDTH) {
+	    layoutWidth = MAX_LAYOUT_WIDTH;
 	  }
 	
-	  // 避免不必要的计算
+	  // layoutWidth不变，避免不必要的计算
 	  if (layoutWidth === preLayoutWidth) {
 	    return;
 	  }
 	  preLayoutWidth = layoutWidth;
 	
-	  // 逻辑
-	  rootSize = layoutWidth / designWidth * 100 * win.RATIO_HACK;
+	  // 设置
+	  setRootSize();
 	
-	  docEl.style.fontSize = rootSize + 'px';
-	
-	  win.rootSize = rootSize;
+	  // 如果ratio!==1，重新设置rootSize
+	  if (checkRatio() !== 1) {
+	    setRootSize();
+	  }
 	}
 	
-	// 执行
-	ratioHack();
-	setRootSize(designWidth, maxLayoutWidth);
-	
+	rootSize();
 	// 自动调整
 	win.addEventListener('resize', function () {
 	  clearTimeout(timer);
-	  timer = setTimeout(setRootSize, 300);
+	  timer = setTimeout(rootSize, 300);
 	});
 	
 	win.addEventListener('orientationchange', function () {
 	  clearTimeout(timer);
-	  timer = setTimeout(setRootSize, 300);
+	  timer = setTimeout(rootSize, 300);
 	});
 
 /***/ }
