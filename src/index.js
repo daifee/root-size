@@ -27,7 +27,8 @@ const docEl = document.documentElement;
 const DESIGN_WIDTH = parseInt(docEl.getAttribute('data-design-width')) || 750;
 const MAX_LAYOUT_WIDTH = parseInt(docEl.getAttribute('data-max-layout-width')) || 750;
 
-let layoutWidth = docEl.getBoundingClientRect().width;
+const defaultWidth = 360;
+let layoutWidth;
 // 正常情况ratio=1，存在bug的设备ratio!=1
 // ratio = rootSize / (layoutWidth / DESIGN_WIDTH * 100)
 let ratio = 1;
@@ -60,7 +61,9 @@ function checkRatio() {
   }
 
   body.appendChild(div);
-  ratio = layoutWidth / div.offsetWidth;
+
+  let realWith = div.offsetWidth || defaultWidth;
+  ratio = layoutWidth / realWith;
 
   // remove body
   if (loadedBody) {
@@ -75,7 +78,7 @@ function checkRatio() {
 
 // 设置根元素字体大小
 export default function rootSize() {
-  layoutWidth = docEl.getBoundingClientRect().width;
+  layoutWidth = docEl.getBoundingClientRect().width || defaultWidth;
 
   // 限制布局宽度
   if (layoutWidth > MAX_LAYOUT_WIDTH) {
