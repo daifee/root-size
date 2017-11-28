@@ -87,7 +87,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	var DESIGN_WIDTH = parseInt(docEl.getAttribute('data-design-width')) || 750;
 	var MAX_LAYOUT_WIDTH = parseInt(docEl.getAttribute('data-max-layout-width')) || 750;
 	
-	var layoutWidth = docEl.getBoundingClientRect().width;
+	var defaultWidth = 360;
+	var layoutWidth = void 0;
 	// 正常情况ratio=1，存在bug的设备ratio!=1
 	// ratio = rootSize / (layoutWidth / DESIGN_WIDTH * 100)
 	var ratio = 1;
@@ -118,7 +119,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	
 	  body.appendChild(div);
-	  ratio = layoutWidth / div.offsetWidth;
+	
+	  var realWith = div.offsetWidth || defaultWidth;
+	  ratio = layoutWidth / realWith;
 	
 	  // remove body
 	  if (loadedBody) {
@@ -132,7 +135,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	// 设置根元素字体大小
 	function rootSize() {
-	  layoutWidth = docEl.getBoundingClientRect().width;
+	  layoutWidth = docEl.getBoundingClientRect().width || defaultWidth;
 	
 	  // 限制布局宽度
 	  if (layoutWidth > MAX_LAYOUT_WIDTH) {

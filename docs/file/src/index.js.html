@@ -67,7 +67,8 @@ const docEl = document.documentElement;
 const DESIGN_WIDTH = parseInt(docEl.getAttribute(&apos;data-design-width&apos;)) || 750;
 const MAX_LAYOUT_WIDTH = parseInt(docEl.getAttribute(&apos;data-max-layout-width&apos;)) || 750;
 
-let layoutWidth = docEl.getBoundingClientRect().width;
+const defaultWidth = 360;
+let layoutWidth;
 // &#x6B63;&#x5E38;&#x60C5;&#x51B5;ratio=1&#xFF0C;&#x5B58;&#x5728;bug&#x7684;&#x8BBE;&#x5907;ratio!=1
 // ratio = rootSize / (layoutWidth / DESIGN_WIDTH * 100)
 let ratio = 1;
@@ -100,7 +101,9 @@ function checkRatio() {
   }
 
   body.appendChild(div);
-  ratio = layoutWidth / div.offsetWidth;
+
+  let realWith = div.offsetWidth || defaultWidth;
+  ratio = layoutWidth / realWith;
 
   // remove body
   if (loadedBody) {
@@ -115,7 +118,7 @@ function checkRatio() {
 
 // &#x8BBE;&#x7F6E;&#x6839;&#x5143;&#x7D20;&#x5B57;&#x4F53;&#x5927;&#x5C0F;
 export default function rootSize() {
-  layoutWidth = docEl.getBoundingClientRect().width;
+  layoutWidth = docEl.getBoundingClientRect().width || defaultWidth;
 
   // &#x9650;&#x5236;&#x5E03;&#x5C40;&#x5BBD;&#x5EA6;
   if (layoutWidth &gt; MAX_LAYOUT_WIDTH) {

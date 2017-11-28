@@ -10,7 +10,7 @@
     "access": null,
     "description": null,
     "lineNumber": 25,
-    "content": "/**\n * 使用rem作为布局单位，动态设置根元素字体大小单位，实现弹性布局。\n */\n\n\n/**\n * 设计稿宽度 = 750px\n * 布局宽度 = device-width\n * 布局要还原设计稿，所以两者的比例要相同\n * 使用rem布局可以全局控制布局\n *\n * 为方便计算，假设：\n * 布局宽度 = 设计稿宽度 * rootSize\n * 即：rootSize = 布局宽度 / 设计稿宽度\n *\n * 假设：device-width = 375px\n * rootSize = 0.5px\n *\n * 又因为rootSize不能小于12px，且为方便计算\n * 将rootSize设定为：rootSize = 布局宽度 / 设计稿宽度 * 100\n * 然后在实际布局中将设计稿的值缩小100倍\n */\n\n\nconst win = window;\nconst docEl = document.documentElement;\nconst DESIGN_WIDTH = parseInt(docEl.getAttribute('data-design-width')) || 750;\nconst MAX_LAYOUT_WIDTH = parseInt(docEl.getAttribute('data-max-layout-width')) || 750;\n\nlet layoutWidth = docEl.getBoundingClientRect().width;\n// 正常情况ratio=1，存在bug的设备ratio!=1\n// ratio = rootSize / (layoutWidth / DESIGN_WIDTH * 100)\nlet ratio = 1;\nlet preLayoutWidth;\nlet timer;\n\n\n\nfunction setRootSize() {\n  let rootSize = layoutWidth / DESIGN_WIDTH * 100 * ratio;\n\n  docEl.style.fontSize = rootSize + 'px';\n}\n\n\n// 创建一个临时的`<div/>`检测ratio是否“准确”\nfunction checkRatio() {\n  let body, loadedBody;\n  let div = document.createElement('div');\n  // `DESIGN_WIDTH / 100 + 'rem'`（例如：7.5rem）应该满屏，即等于layoutWidth\n  div.style.width = DESIGN_WIDTH / 100 + 'rem';\n\n  if (document.body) {\n    loadedBody = true;\n    body = document.body;\n  } else {\n    loadedBody = false;\n    body = document.createElement('body');\n    docEl.appendChild(body);\n  }\n\n  body.appendChild(div);\n  ratio = layoutWidth / div.offsetWidth;\n\n  // remove body\n  if (loadedBody) {\n    body.removeChild(div);\n  } else {\n    docEl.removeChild(body);\n  }\n\n  return ratio;\n}\n\n\n// 设置根元素字体大小\nexport default function rootSize() {\n  layoutWidth = docEl.getBoundingClientRect().width;\n\n  // 限制布局宽度\n  if (layoutWidth > MAX_LAYOUT_WIDTH) {\n    layoutWidth = MAX_LAYOUT_WIDTH;\n  }\n\n  // layoutWidth不变，避免不必要的计算\n  if (layoutWidth === preLayoutWidth) {\n    return;\n  }\n  preLayoutWidth = layoutWidth;\n\n  // 设置\n  setRootSize();\n\n  // 如果ratio!==1，重新设置rootSize\n  if (checkRatio() !== 1) {\n    setRootSize();\n  }\n}\n\n\nrootSize();\n// 自动调整\nwin.addEventListener('resize', () => {\n  clearTimeout(timer);\n  timer = setTimeout(rootSize, 300);\n});\n\nwin.addEventListener('orientationchange', () => {\n  clearTimeout(timer);\n  timer = setTimeout(rootSize, 300);\n});\n\n"
+    "content": "/**\n * 使用rem作为布局单位，动态设置根元素字体大小单位，实现弹性布局。\n */\n\n\n/**\n * 设计稿宽度 = 750px\n * 布局宽度 = device-width\n * 布局要还原设计稿，所以两者的比例要相同\n * 使用rem布局可以全局控制布局\n *\n * 为方便计算，假设：\n * 布局宽度 = 设计稿宽度 * rootSize\n * 即：rootSize = 布局宽度 / 设计稿宽度\n *\n * 假设：device-width = 375px\n * rootSize = 0.5px\n *\n * 又因为rootSize不能小于12px，且为方便计算\n * 将rootSize设定为：rootSize = 布局宽度 / 设计稿宽度 * 100\n * 然后在实际布局中将设计稿的值缩小100倍\n */\n\n\nconst win = window;\nconst docEl = document.documentElement;\nconst DESIGN_WIDTH = parseInt(docEl.getAttribute('data-design-width')) || 750;\nconst MAX_LAYOUT_WIDTH = parseInt(docEl.getAttribute('data-max-layout-width')) || 750;\n\nconst defaultWidth = 360;\nlet layoutWidth;\n// 正常情况ratio=1，存在bug的设备ratio!=1\n// ratio = rootSize / (layoutWidth / DESIGN_WIDTH * 100)\nlet ratio = 1;\nlet preLayoutWidth;\nlet timer;\n\n\n\nfunction setRootSize() {\n  let rootSize = layoutWidth / DESIGN_WIDTH * 100 * ratio;\n\n  docEl.style.fontSize = rootSize + 'px';\n}\n\n\n// 创建一个临时的`<div/>`检测ratio是否“准确”\nfunction checkRatio() {\n  let body, loadedBody;\n  let div = document.createElement('div');\n  // `DESIGN_WIDTH / 100 + 'rem'`（例如：7.5rem）应该满屏，即等于layoutWidth\n  div.style.width = DESIGN_WIDTH / 100 + 'rem';\n\n  if (document.body) {\n    loadedBody = true;\n    body = document.body;\n  } else {\n    loadedBody = false;\n    body = document.createElement('body');\n    docEl.appendChild(body);\n  }\n\n  body.appendChild(div);\n\n  let realWith = div.offsetWidth || defaultWidth;\n  ratio = layoutWidth / realWith;\n\n  // remove body\n  if (loadedBody) {\n    body.removeChild(div);\n  } else {\n    docEl.removeChild(body);\n  }\n\n  return ratio;\n}\n\n\n// 设置根元素字体大小\nexport default function rootSize() {\n  layoutWidth = docEl.getBoundingClientRect().width || defaultWidth;\n\n  // 限制布局宽度\n  if (layoutWidth > MAX_LAYOUT_WIDTH) {\n    layoutWidth = MAX_LAYOUT_WIDTH;\n  }\n\n  // layoutWidth不变，避免不必要的计算\n  if (layoutWidth === preLayoutWidth) {\n    return;\n  }\n  preLayoutWidth = layoutWidth;\n\n  // 设置\n  setRootSize();\n\n  // 如果ratio!==1，重新设置rootSize\n  if (checkRatio() !== 1) {\n    setRootSize();\n  }\n}\n\n\nrootSize();\n// 自动调整\nwin.addEventListener('resize', () => {\n  clearTimeout(timer);\n  timer = setTimeout(rootSize, 300);\n});\n\nwin.addEventListener('orientationchange', () => {\n  clearTimeout(timer);\n  timer = setTimeout(rootSize, 300);\n});\n\n"
   },
   {
     "__docId__": 1,
@@ -100,9 +100,9 @@
     "kind": "variable",
     "static": true,
     "variation": null,
-    "name": "layoutWidth",
+    "name": "defaultWidth",
     "memberof": "src/index.js",
-    "longname": "src/index.js~layoutWidth",
+    "longname": "src/index.js~defaultWidth",
     "access": null,
     "export": false,
     "importPath": "root-size/src/index.js",
@@ -112,7 +112,7 @@
     "undocument": true,
     "type": {
       "types": [
-        "*"
+        "number"
       ]
     }
   },
@@ -129,7 +129,7 @@
     "importPath": "root-size/src/index.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 33,
+    "lineNumber": 34,
     "undocument": true,
     "type": {
       "types": [
@@ -150,7 +150,7 @@
     "importPath": "root-size/src/index.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 39,
+    "lineNumber": 40,
     "undocument": true,
     "params": [],
     "generator": false
@@ -168,7 +168,7 @@
     "importPath": "root-size/src/index.js",
     "importStyle": null,
     "description": null,
-    "lineNumber": 47,
+    "lineNumber": 48,
     "undocument": true,
     "params": [],
     "return": {
@@ -191,7 +191,7 @@
     "importPath": "root-size/src/index.js",
     "importStyle": "rootSize",
     "description": null,
-    "lineNumber": 77,
+    "lineNumber": 80,
     "undocument": true,
     "params": [],
     "generator": false
